@@ -5,7 +5,6 @@ export class NFAState {
 }
 
 export interface NFAPath {
-    from: NFAState;
     to: NFAState;
     char: string;
     excludeFromSort?: true;

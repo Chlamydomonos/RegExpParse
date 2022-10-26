@@ -91,7 +91,6 @@ export default class DFAFactory {
 
     private connect(from: DFAState, to: DFAState, char: string): void {
         const path: DFAPath = {
-            from: from,
             to: to,
             char: char,
         };

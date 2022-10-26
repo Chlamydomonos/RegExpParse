@@ -39,7 +39,6 @@ export default class NFAFactory {
         excludeFromSort?: true
     ): void {
         const path: NFAPath = {
-            from: from,
             to: to,
             char: char,
         };

@@ -4,7 +4,6 @@ export class DFAState {
 }
 
 export interface DFAPath {
-    from: DFAState;
     to: DFAState;
     char: string;
 }
