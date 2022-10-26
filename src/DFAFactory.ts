@@ -12,7 +12,7 @@ export default class DFAFactory {
     }
     private createDFA(nfa: NFA): DFA {
         const dfaStateSet: Set<string> = new Set();
-        const dfaLastStateSet: Set<string> = new Set();
+        const dfaFinalStateSet: Set<string> = new Set();
         const dfaPathSet: Set<string> = new Set();
 
         const stateSetQueue: Set<string>[] = [];
@@ -31,8 +31,8 @@ export default class DFAFactory {
 
             const stateName = this.genSetName(stateSet);
             dfaStateSet.add(stateName);
-            if (stateSet.has(nfa.lastState.name)) {
-                dfaLastStateSet.add(stateName);
+            if (stateSet.has(nfa.finalState.name)) {
+                dfaFinalStateSet.add(stateName);
             }
 
             const charSet = this.availableChars(stateSet);
@@ -67,13 +67,13 @@ export default class DFAFactory {
             this.connect(fromState, toState, char);
         });
 
-        const lastStates = new Set<DFAState>();
-        dfaLastStateSet.forEach((stateName) => {
+        const finalStates = new Set<DFAState>();
+        dfaFinalStateSet.forEach((stateName) => {
             const state = dfaStateMap.get(stateName);
             if (state == null) {
                 throw Error();
             }
-            lastStates.add(state);
+            finalStates.add(state);
         });
 
         const initialState = dfaStateMap.get(this.genSetName(initialStateSet));
@@ -84,7 +84,7 @@ export default class DFAFactory {
 
         return {
             initialState: initialState,
-            lastStates: lastStates,
+            finalStates: finalStates,
             states: new Set(dfaStateMap.values()),
         };
     }

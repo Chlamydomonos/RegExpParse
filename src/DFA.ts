@@ -10,6 +10,6 @@ export interface DFAPath {
 
 export interface DFA {
     initialState: DFAState;
-    lastStates: Set<DFAState>;
+    finalStates: Set<DFAState>;
     states: Set<DFAState>;
 }

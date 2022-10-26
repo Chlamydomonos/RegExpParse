@@ -56,17 +56,17 @@ export default class NFAFactory {
         this.connect(state1, state2, char);
         return {
             initialState: state1,
-            lastState: state2,
+            finalState: state2,
             states: new Set([state1, state2]),
         };
     }
 
     private nfaForCon(lNFA: NFA, rNFA: NFA): NFA {
-        this.connect(lNFA.lastState, rNFA.initialState, '');
+        this.connect(lNFA.finalState, rNFA.initialState, '');
 
         return {
             initialState: lNFA.initialState,
-            lastState: rNFA.lastState,
+            finalState: rNFA.finalState,
             states: new Set([...lNFA.states, ...rNFA.states]),
         };
     }
@@ -77,12 +77,12 @@ export default class NFAFactory {
 
         this.connect(state1, lNFA.initialState, '');
         this.connect(state1, rNFA.initialState, '');
-        this.connect(lNFA.lastState, state2, '');
-        this.connect(rNFA.lastState, state2, '');
+        this.connect(lNFA.finalState, state2, '');
+        this.connect(rNFA.finalState, state2, '');
 
         return {
             initialState: state1,
-            lastState: state2,
+            finalState: state2,
             states: new Set([state1, state2, ...lNFA.states, ...rNFA.states]),
         };
     }
@@ -93,12 +93,12 @@ export default class NFAFactory {
 
         this.connect(state1, nfa.initialState, '');
         this.connect(state1, state2, '');
-        this.connect(nfa.lastState, state2, '');
-        this.connect(nfa.lastState, nfa.initialState, '', true);
+        this.connect(nfa.finalState, state2, '');
+        this.connect(nfa.finalState, nfa.initialState, '', true);
 
         return {
             initialState: state1,
-            lastState: state2,
+            finalState: state2,
             states: new Set([state1, state2, ...nfa.states]),
         };
     }
@@ -108,18 +108,18 @@ export default class NFAFactory {
         const state2 = new NFAState();
 
         this.connect(state1, nfa.initialState, '');
-        this.connect(nfa.lastState, state2, '');
-        this.connect(nfa.lastState, nfa.initialState, '', true);
+        this.connect(nfa.finalState, state2, '');
+        this.connect(nfa.finalState, nfa.initialState, '', true);
 
         return {
             initialState: state1,
-            lastState: state2,
+            finalState: state2,
             states: new Set([state1, state2, ...nfa.states]),
         };
     }
 
     private nfaForOpt(nfa: NFA): NFA {
-        this.connect(nfa.initialState, nfa.lastState, '');
+        this.connect(nfa.initialState, nfa.finalState, '');
         return nfa;
     }
 

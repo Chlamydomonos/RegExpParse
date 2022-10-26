@@ -12,6 +12,6 @@ export interface NFAPath {
 
 export interface NFA {
     initialState: NFAState;
-    lastState: NFAState;
+    finalState: NFAState;
     states: Set<NFAState>;
 }
