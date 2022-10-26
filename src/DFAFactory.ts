@@ -46,7 +46,7 @@ export default class DFAFactory {
             });
         }
 
-        const dfaStateMap: Map<string, DFAState> = new Map();
+        const dfaStateMap = new Map<string, DFAState>();
         dfaStateSet.forEach((stateName) => {
             dfaStateMap.set(stateName, {
                 name: stateName,
@@ -67,7 +67,7 @@ export default class DFAFactory {
             this.connect(fromState, toState, char);
         });
 
-        const lastStates: Set<DFAState> = new Set();
+        const lastStates = new Set<DFAState>();
         dfaLastStateSet.forEach((stateName) => {
             const state = dfaStateMap.get(stateName);
             if (state == null) {
@@ -107,7 +107,7 @@ export default class DFAFactory {
     }
 
     private epsilonClosure(stateNames: Set<string>): Set<string> {
-        const out: Set<string> = new Set();
+        const out = new Set<string>();
         const stateQueue = [...stateNames];
         while (stateQueue.length > 0) {
             const value = stateQueue.shift();
@@ -131,7 +131,7 @@ export default class DFAFactory {
     }
 
     private to(stateNames: Set<string>, char: string): Set<string> {
-        const out: Set<string> = new Set();
+        const out = new Set<string>();
         stateNames.forEach((value) => {
             const state = this.nfaStateMap.get(value);
             if (state == null) {
@@ -160,7 +160,7 @@ export default class DFAFactory {
     }
 
     private availableChars(stateNames: Set<string>): Set<string> {
-        const out: Set<string> = new Set();
+        const out = new Set<string>();
 
         stateNames.forEach((value) => {
             const state = this.nfaStateMap.get(value);
