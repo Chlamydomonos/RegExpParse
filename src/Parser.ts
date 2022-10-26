@@ -23,7 +23,6 @@ export default class Parser {
                 opStack.push(current);
             } else if (current == '*') {
                 readChar = true;
-                this.popStacks(charStack, opStack);
                 const temp = charStack.pop();
                 if (temp == null) {
                     throw Error();
@@ -34,7 +33,6 @@ export default class Parser {
                 });
             } else if (current == '+') {
                 readChar = true;
-                this.popStacks(charStack, opStack);
                 const temp = charStack.pop();
                 if (temp == null) {
                     throw Error();
@@ -45,7 +43,6 @@ export default class Parser {
                 });
             } else if (current == '?') {
                 readChar = true;
-                this.popStacks(charStack, opStack);
                 const temp = charStack.pop();
                 if (temp == null) {
                     throw Error();
