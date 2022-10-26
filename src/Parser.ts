@@ -96,7 +96,6 @@ export default class Parser {
         return { node: charStack[0], index: -1 };
     }
 
-    //
     private popStacks(charStack: TreeNode[], opStack: string[]): void {
         if (charStack.length == 0 && opStack.length > 0) {
             throw Error();
