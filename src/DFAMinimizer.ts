@@ -1,199 +1,285 @@
-import { DFAState, type DFA } from './DFA';
-
-interface SimpleDFAPath {
-    to: number;
-    char: string;
-}
+import { DFAState, type DFA, type DFAPath } from './DFA';
 
 interface SimpleDFA {
-    states: SimpleDFAPath[][];
+    states: number[][];
     initialState: number;
     finalStates: Set<number>;
 }
 
+class StateSet {
+    constructor(public id: number, public value: number[] = []) {}
+}
+
 export default class DFAMinimizer {
-    private originalDFA: SimpleDFA = {
-        initialState: -1,
-        states: [],
-        finalStates: new Set(),
-    };
-    private charSetSize = 0;
+    private maxStateSetId = 0;
+    private allStateSets = new Map<number, StateSet>();
+    private stateSetMap: StateSet[] = [];
+    private originalDFA: SimpleDFA;
+    private charSet: string[] = [];
+    private charSetReversed = new Map<string, number>();
     readonly minDFA: DFA;
+
     constructor(dfa: DFA) {
-        this.genOriginalDFA(dfa);
+        this.initCharSet(dfa);
 
-        for (let i = 0; i < this.originalDFA.states.length; i++) {
-            const state = this.originalDFA.states[i];
-            if (state.length > this.charSetSize) {
-                this.charSetSize = state.length;
-            }
-        }
-
-        this.minDFA = this.createMinDFA();
+        this.originalDFA = {
+            states: [],
+            initialState: -1,
+            finalStates: new Set(),
+        };
+        this.initDFA(dfa);
+        this.minDFA = this.minimizeDFA();
     }
 
-    private genOriginalDFA(dfa: DFA) {
-        const stateMap = new Map<string, number>();
-        const stateQueue: DFAState[] = [dfa.initialState];
+    private newStateSet(value?: number[]): StateSet {
+        let out: StateSet;
+        if (value == null) {
+            out = new StateSet(++this.maxStateSetId);
+        } else {
+            out = new StateSet(++this.maxStateSetId, value);
+        }
 
-        dfa.states.forEach((state) => {
-            stateMap.set(state.name, this.originalDFA.states.length);
-            this.originalDFA.states.push([{ to: -1, char: '' }]);
+        this.allStateSets.set(out.id, out);
+
+        value?.forEach((state) => {
+            this.stateSetMap[state] = out;
         });
 
-        dfa.finalStates.forEach((state) => {
-            const stateId = stateMap.get(state.name);
-            if (stateId == null) {
-                throw Error();
+        return out;
+    }
+
+    private seperateStateSet(set: StateSet): StateSet[] {
+        if (set.value.length == 0) {
+            this.allStateSets.delete(set.id);
+            return [];
+        }
+
+        if (set.value.length == 1) {
+            return [set];
+        }
+
+        const toMap = new Map<string, number[]>();
+
+        set.value.forEach((state) => {
+            const to = this.genTo(state);
+            if (toMap.has(to)) {
+                toMap.get(to)?.push(state);
+            } else {
+                toMap.set(to, [state]);
             }
-            this.originalDFA.finalStates.add(stateId);
         });
 
-        const initialStateId = stateMap.get(dfa.initialState.name);
+        const out: StateSet[] = [];
+
+        toMap.forEach((value) => {
+            out.push(this.newStateSet(value));
+        });
+
+        return out;
+    }
+
+    private genTo(state: number): string {
+        let out = '';
+        for (let i = 0; i < this.charSet.length; i++) {
+            const to = this.originalDFA.states[state][i];
+            if (to < 0) {
+                out += 'e,';
+            } else {
+                out += `${this.stateSetMap[to].id},`;
+            }
+        }
+        return out;
+    }
+
+    private initCharSet(dfa: DFA) {
+        const tempCharSet = new Set<string>();
+        dfa.states.forEach((state) => {
+            for (let i = 0; i < state.paths.length; i++) {
+                tempCharSet.add(state.paths[i].char);
+            }
+        });
+        this.charSet = [...tempCharSet];
+        for (let i = 0; i < this.charSet.length; i++) {
+            this.charSetReversed.set(this.charSet[i], i);
+        }
+    }
+
+    private initDFA(dfa: DFA) {
+        const tempStateMap = new Map<string, number>();
+        dfa.states.forEach((state) => {
+            const id = this.originalDFA.states.length;
+            tempStateMap.set(state.name, id);
+            const tempArray = [];
+            for (let i = 0; i < this.charSet.length; i++) {
+                tempArray.push(-1);
+            }
+            this.originalDFA.states.push(tempArray);
+        });
+
+        const initialStateId = tempStateMap.get(dfa.initialState.name);
         if (initialStateId == null) {
             throw Error();
         }
+
         this.originalDFA.initialState = initialStateId;
-        this.originalDFA.states[initialStateId] = [];
 
-        while (stateQueue.length > 0) {
-            const state = stateQueue.shift();
-            if (state == null) {
+        dfa.finalStates.forEach((state) => {
+            const id = tempStateMap.get(state.name);
+            if (id == null) {
                 throw Error();
             }
+            this.originalDFA.finalStates.add(id);
+        });
 
-            const fromId = stateMap.get(state.name);
-            if (fromId == null) {
-                throw Error();
-            }
-
+        dfa.states.forEach((state) => {
             for (let i = 0; i < state.paths.length; i++) {
                 const path = state.paths[i];
-                const toId = stateMap.get(path.to.name);
-                if (toId == null) {
+                const fromId = tempStateMap.get(state.name);
+                const toId = tempStateMap.get(path.to.name);
+                const charId = this.charSetReversed.get(path.char);
+                if (fromId == null || toId == null || charId == null) {
                     throw Error();
                 }
-
-                this.originalDFA.states[fromId].push({
-                    to: toId,
-                    char: path.char,
-                });
-                const to = this.originalDFA.states[toId][0];
-                if (to != null && to.to == -1) {
-                    this.originalDFA.states[toId] = [];
-                    stateQueue.push(path.to);
-                }
+                this.originalDFA.states[fromId][charId] = toId;
             }
-        }
+        });
     }
 
-    private createMinDFA(): DFA {
-        const livingFinalStates = new Set<number>();
-        const deadFinalStates = new Set<number>();
-        const livingNotFinalStates = new Set<number>();
-        const deadNotFinalStates = new Set<number>();
+    private minimizeDFA(): DFA {
+        const livingFinal: number[] = [];
+        const livingNotFinal: number[] = [];
+        const deadFinal: number[] = [];
+        const deadNotFinal: number[] = [];
         for (let i = 0; i < this.originalDFA.states.length; i++) {
             const state = this.originalDFA.states[i];
-            if (this.originalDFA.finalStates.has(i)) {
-                if (state.length == this.charSetSize) {
-                    livingFinalStates.add(i);
+            let isLiving = true;
+            for (let j = 0; j < state.length; j++) {
+                if (state[j] < 0) {
+                    isLiving = false;
+                    break;
+                }
+            }
+            if (isLiving) {
+                if (this.originalDFA.finalStates.has(i)) {
+                    livingFinal.push(i);
                 } else {
-                    deadFinalStates.add(i);
+                    livingNotFinal.push(i);
                 }
             } else {
-                if (state.length == this.charSetSize) {
-                    livingNotFinalStates.add(i);
+                if (this.originalDFA.finalStates.has(i)) {
+                    deadFinal.push(i);
                 } else {
-                    deadNotFinalStates.add(i);
+                    deadNotFinal.push(i);
                 }
             }
         }
 
-        const setQueue: Set<number>[] = [
-            livingFinalStates,
-            livingNotFinalStates,
-            deadFinalStates,
-            deadNotFinalStates,
+        const stateSetQueue = [
+            this.newStateSet(livingFinal),
+            this.newStateSet(livingNotFinal),
+            this.newStateSet(deadFinal),
+            this.newStateSet(deadNotFinal),
         ];
-        const minSets: Set<number>[] = [];
-        while (setQueue.length > 0) {
-            const set = setQueue.shift();
-            if (set == null) {
+        const minSateSets: StateSet[] = [];
+        while (stateSetQueue.length > 0) {
+            const stateSet = stateSetQueue.shift();
+            if (stateSet == null) {
                 throw Error();
             }
-
-            const result = this.separateSet(set);
-            if (result.newSet.size == 0) {
-                minSets.push(result.equalSet);
-            } else {
-                setQueue.push(result.equalSet, result.newSet);
+            if (stateSet.value.length == 0) {
+                this.allStateSets.delete(stateSet.id);
+                continue;
             }
-        }
-
-        const stateMap: number[] = [];
-        const simpleMin: Map<string, number>[] = [];
-        for (let i = 0; i < this.originalDFA.states.length; i++) {
-            stateMap.push(-1);
-            simpleMin.push(new Map());
-        }
-
-        for (let i = 0; i < minSets.length; i++) {
-            const set = minSets[i];
-            const target = [...set][0];
-            set.forEach((state) => {
-                stateMap[state] = target;
-            });
-        }
-
-        for (let i = 0; i < this.originalDFA.states.length; i++) {
-            for (let j = 0; j < this.originalDFA.states[i].length; j++) {
-                const char = this.originalDFA.states[i][j].char;
-                const from = stateMap[i];
-                const to = stateMap[this.originalDFA.states[i][j].to];
-                simpleMin[from].set(char, to);
-            }
-        }
-
-        let outInitialState = new DFAState();
-        const outFinalStates = new Set<DFAState>();
-        const outStates = new Set<DFAState>();
-        const outStateMap = new Map<number, DFAState>();
-
-        let stateName = 0;
-
-        for (let i = 0; i < simpleMin.length; i++) {
-            if (simpleMin[i].size == 0) {
+            if (stateSet.value.length == 1) {
+                minSateSets.push(stateSet);
                 continue;
             }
 
-            const state: DFAState = {
-                name: (++stateName).toString(),
-                paths: [],
-            };
-
-            outStates.add(state);
-            outStateMap.set(i, state);
-            if (this.originalDFA.finalStates.has(i)) {
-                outFinalStates.add(state);
-            }
-            if (i == stateMap[this.originalDFA.initialState]) {
-                outInitialState = state;
+            const result = this.seperateStateSet(stateSet);
+            if (result.length == 1) {
+                minSateSets.push(result[0]);
+            } else {
+                stateSetQueue.push(...result);
             }
         }
 
-        for (let i = 0; i < simpleMin.length; i++) {
-            simpleMin[i].forEach((value, key) => {
-                const from = outStateMap.get(i);
-                const to = outStateMap.get(value);
-                if (from == null || to == null) {
+        for (let i = 0; i < this.originalDFA.states.length; i++) {
+            const state = this.originalDFA.states[i];
+            for (let j = 0; j < state.length; j++) {
+                if (state[j] < 0) {
+                    continue;
+                }
+                const fromState = this.stateSetMap[i].value[0];
+                const toState = this.stateSetMap[state[j]].value[0];
+                this.originalDFA.states[fromState][j] = toState;
+            }
+        }
+
+        const newSates = new Set<number>();
+        for (let i = 0; i < this.originalDFA.states.length; i++) {
+            newSates.add(this.stateSetMap[i].value[0]);
+        }
+
+        const newFinalStates = new Set<number>();
+        this.originalDFA.finalStates.forEach((state) => {
+            newFinalStates.add(this.stateSetMap[state].value[0]);
+        });
+
+        const newInitialState =
+            this.stateSetMap[this.originalDFA.initialState].value[0];
+
+        const newStateQueue: number[] = [newInitialState];
+        const outTempMap = new Map<number, DFAState>();
+        const outStates = new Set<DFAState>();
+        const outFinalStates = new Set<DFAState>();
+
+        let newStateName = 1;
+        newSates.forEach((state) => {
+            const outState = new DFAState();
+            outState.name = newStateName.toString();
+            newStateName++;
+            outTempMap.set(state, outState);
+            outStates.add(outState);
+            if (newFinalStates.has(state)) {
+                outFinalStates.add(outState);
+            }
+        });
+
+        while (newStateQueue.length > 0) {
+            const stateId = newStateQueue.shift();
+            if (stateId == null) {
+                throw Error();
+            }
+            const state = outTempMap.get(stateId);
+            if (state == null) {
+                throw Error();
+            }
+            if (state.paths.length > 0) {
+                continue;
+            }
+            for (let i = 0; i < this.charSet.length; i++) {
+                const pathToId = this.originalDFA.states[stateId][i];
+                if (pathToId < 0) {
+                    continue;
+                }
+                const pathTo = outTempMap.get(pathToId);
+                if (pathTo == null) {
                     throw Error();
                 }
 
-                from.paths.push({
-                    to: to,
-                    char: key,
-                });
-            });
+                newStateQueue.push(pathToId);
+                const pathChar = this.charSet[i];
+                const path: DFAPath = {
+                    to: pathTo,
+                    char: pathChar,
+                };
+                state.paths.push(path);
+            }
+        }
+
+        const outInitialState = outTempMap.get(newInitialState);
+        if (outInitialState == null) {
+            throw Error();
         }
 
         return {
@@ -201,35 +287,5 @@ export default class DFAMinimizer {
             finalStates: outFinalStates,
             states: outStates,
         };
-    }
-
-    private separateSet(set: Set<number>): {
-        equalSet: Set<number>;
-        newSet: Set<number>;
-    } {
-        if (set.size < 2) {
-            return { equalSet: set, newSet: new Set() };
-        }
-
-        const equalSet = new Set<number>();
-        const newSet = new Set<number>();
-
-        set.forEach((state) => {
-            let inEqualSet = true;
-            for (let i = 0; i < this.originalDFA.states[state].length; i++) {
-                const toState = this.originalDFA.states[state][i].to;
-                if (!set.has(toState)) {
-                    inEqualSet = false;
-                    break;
-                }
-            }
-            if (inEqualSet) {
-                equalSet.add(state);
-            } else {
-                newSet.add(state);
-            }
-        });
-
-        return { equalSet: equalSet, newSet: newSet };
     }
 }
