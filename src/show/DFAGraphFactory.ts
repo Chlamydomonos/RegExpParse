@@ -18,6 +18,9 @@ export default class DFAGraphFactory {
             if (finalStateSet.has(state.name)) {
                 category = 1;
             }
+            if (dfa.initialState.name == state.name) {
+                category += 2;
+            }
             const node: FAGraphNode = {
                 id: stateList.length,
                 name: state.name,
@@ -77,6 +80,8 @@ export default class DFAGraphFactory {
                 });
             });
         }
+
+        this.graph.nodes = stateList;
     }
 
     private genPathName(chars: string[]): string {

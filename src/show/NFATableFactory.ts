@@ -7,6 +7,8 @@ export default class NFATableFactory {
     private reverseCharSet = new Map<string, number>();
 
     constructor(nfa: NFA) {
+        this.generateCharSet(nfa);
+
         nfa.states.forEach((state) => {
             const isInitial = nfa.initialState.name == state.name;
             const isFinal = nfa.finalState.name == state.name;

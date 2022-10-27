@@ -13,6 +13,9 @@ export default class NFAGraphFactory {
             if (nfa.finalState.name == state.name) {
                 category = 1;
             }
+            if (nfa.initialState.name == state.name) {
+                category += 2;
+            }
             const node: FAGraphNode = {
                 id: stateList.length,
                 name: state.name,
@@ -72,6 +75,8 @@ export default class NFAGraphFactory {
                 });
             });
         }
+
+        this.graph.nodes = stateList;
     }
 
     private genPathName(chars: string[]): string {

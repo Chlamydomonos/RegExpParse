@@ -7,9 +7,18 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    ElButton: typeof import('element-plus/es')['ElButton']
+    ElCol: typeof import('element-plus/es')['ElCol']
     ElIcon: typeof import('element-plus/es')['ElIcon']
+    ElInput: typeof import('element-plus/es')['ElInput']
+    ElRow: typeof import('element-plus/es')['ElRow']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
+    ElTabPane: typeof import('element-plus/es')['ElTabPane']
+    ElTabs: typeof import('element-plus/es')['ElTabs']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
+    FAComponent: typeof import('./src/components/FAComponent.vue')['default']
+    FAGraphComponent: typeof import('./src/components/FAGraphComponent.vue')['default']
     FATableComponent: typeof import('./src/components/FATableComponent.vue')['default']
   }
 }

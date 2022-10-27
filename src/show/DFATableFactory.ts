@@ -7,6 +7,8 @@ export default class DFATableFactory {
     private reverseCharSet = new Map<string, number>();
 
     constructor(dfa: DFA) {
+        this.generateCharSet(dfa);
+
         const finalStateNames = new Set<string>();
         dfa.finalStates.forEach((state) => {
             finalStateNames.add(state.name);
