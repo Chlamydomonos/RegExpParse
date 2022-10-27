@@ -10,6 +10,11 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.0.10",
+    "@types/echarts": "^4.9.16",
+    "echarts": "^5.4.0",
+    "element-plus": "^2.2.19",
+    "sass": "^1.55.0",
     "vue": "^3.2.38"
   },
   "devDependencies": {
@@ -25,6 +30,8 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
     "typescript": "~4.7.4",
+    "unplugin-auto-import": "^0.11.4",
+    "unplugin-vue-components": "^0.22.9",
     "vite": "^3.0.9",
     "vue-tsc": "^0.40.7"
   }

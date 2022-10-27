@@ -1,9 +1,28 @@
 <template>
     <div class="main-frame" :style="mainStyle">
-        <el-table style="width: 100%; height: 100%" :data="tableData">
+        <el-table style="width: 100%; height: 100%" :data="tableData" border>
             <el-table-column label="">
                 <template #default="scope">
-                    <el-icon v-if="scope.row.isInitial"><Right /></el-icon>
+                    <el-icon color="#FF4040" v-if="scope.row.isInitial">
+                        <Right />
+                    </el-icon>
+                    <el-icon color="#FF4040" v-if="scope.row.isFinal">
+                        <CircleCheck />
+                    </el-icon>
+                </template>
+            </el-table-column>
+            <el-table-column label="状态">
+                <template #default="scope">
+                    <span>{{ scope.row.name }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                v-for="i in value.charSet.length"
+                :key="i"
+                :label="charTest(value.charSet[i - 1])"
+            >
+                <template #default="scope">
+                    <span>{{ scope.row.paths[i - 1] }}</span>
                 </template>
             </el-table-column>
         </el-table>
@@ -18,7 +37,7 @@ export default defineComponent({
     props: {
         width: String,
         height: String,
-        value: FATable,
+        value: { type: FATable, required: true },
     },
     computed: {
         mainStyle() {
@@ -36,7 +55,12 @@ export default defineComponent({
             };
         },
         tableData() {
-            return this.value?.items;
+            return this.value.items;
+        },
+    },
+    methods: {
+        charTest(char: string) {
+            return char == '' ? 'ε' : char;
         },
     },
 });

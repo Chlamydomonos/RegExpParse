@@ -1,26 +1,11 @@
 <template>
-    <div class="big-frame">
-        <FATableComponent
-            :value="{
-                charSet: ['a'],
-                items: [
-                    {
-                        isInitial: true,
-                        isFinal: true,
-                        name: 'test',
-                        paths: [],
-                    },
-                ],
-            }"
-        ></FATableComponent>
-    </div>
+    <div class="big-frame"></div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import FATableComponent from './components/FATableComponent.vue';
 
-export default defineComponent({ components: { FATableComponent } });
+export default defineComponent({});
 </script>
 
 <style lang="scss">
