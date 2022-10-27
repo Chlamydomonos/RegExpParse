@@ -48,7 +48,7 @@ export default class DFAMinimizer {
         return out;
     }
 
-    private seperateStateSet(set: StateSet): StateSet[] {
+    private separateStateSet(set: StateSet): StateSet[] {
         if (set.value.length == 0) {
             this.allStateSets.delete(set.id);
             return [];
@@ -195,7 +195,7 @@ export default class DFAMinimizer {
                 continue;
             }
 
-            const result = this.seperateStateSet(stateSet);
+            const result = this.separateStateSet(stateSet);
             if (result.length == 1) {
                 minSateSets.push(result[0]);
             } else {
