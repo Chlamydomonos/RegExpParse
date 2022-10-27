@@ -1,6 +1,6 @@
 <template>
     <div class="main-frame">
-        <el-tabs v-on:tab-change="onTabChange">
+        <el-tabs v-on:tab-change="onTabChange" v-model="activeTab">
             <el-tab-pane label="状态转移表" name="1" />
             <el-tab-pane label="状态图" name="2" />
         </el-tabs>
@@ -28,6 +28,7 @@ import FATableComponent from './FATableComponent.vue';
 class Data {
     tableVisible = false;
     graphVisible = false;
+    activeTab = '1';
 }
 
 export default defineComponent({
@@ -52,6 +53,13 @@ export default defineComponent({
                     this.graphVisible = true;
                 }, 10);
             }
+        },
+        init() {
+            this.graphVisible = false;
+            setTimeout(() => {
+                this.tableVisible = true;
+            }, 10);
+            this.activeTab = '1';
         },
     },
     components: { FATableComponent, FAGraphComponent },

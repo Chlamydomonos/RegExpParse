@@ -43,6 +43,7 @@
                             :table="nfaTable"
                             :graph="nfaGraph"
                             ref-prefix="nfa"
+                            ref="c1"
                         />
                     </el-row>
                 </div>
@@ -57,6 +58,7 @@
                             :table="dfaTable"
                             :graph="dfaGraph"
                             ref-prefix="dfa"
+                            ref="c2"
                         />
                     </el-row>
                 </div>
@@ -69,6 +71,7 @@
                             :table="minDfaTable"
                             :graph="minDfaGraph"
                             ref-prefix="min-dfa"
+                            ref="c3"
                         />
                     </el-row>
                 </div>
@@ -154,6 +157,9 @@ export default defineComponent({
                     dfaMinimizer.minDFA
                 );
                 this.minDfaGraph = minDFAGraphFactory.graph;
+                (this.$refs['c1'] as any).init();
+                (this.$refs['c2'] as any).init();
+                (this.$refs['c3'] as any).init();
             } catch (e) {
                 alert('正则表达式的格式有误！');
             }
